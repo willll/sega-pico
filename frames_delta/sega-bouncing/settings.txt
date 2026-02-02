@@ -1,0 +1,8 @@
+FRAME_SKIP = 4
+PRINT_FRAMES = False
+RAW_FRAMES_DIR = "frames_delta/sega-bouncing"
+USE_RAW_FRAMES = True
+FRAME_W = 120
+FRAME_H = 67
+TARGET_LOOP_MS = 640
+USE_TIMER_PACING = True
