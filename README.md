@@ -83,3 +83,7 @@ Use your preferred tool to copy files to the board. Common steps:
 └── tools/
 	└── predecode_gif.py
 ```
+
+## Project video
+
+[![Project demo thumbnail](https://img.youtube.com/vi/TMqXyAvfdKo/hqdefault.jpg)](https://www.youtube.com/shorts/TMqXyAvfdKo)
