@@ -1,5 +1,6 @@
 import os
 import struct
+import sys
 from pathlib import Path
 
 from PIL import Image, ImageSequence
@@ -69,11 +70,22 @@ def delta_rle_encode(prev_bytes, cur_bytes):
 
 TARGET_W = 240
 TARGET_H = 135
+FRAME_STEP = 2
 
 
 def main():
+    global FRAME_STEP
     src = Path("gif/sega-small.gif")
     out_dir = Path("frames_delta")
+    if len(sys.argv) >= 2:
+        src = Path(sys.argv[1])
+    if len(sys.argv) >= 3:
+        out_dir = Path(sys.argv[2])
+    if len(sys.argv) >= 4:
+        FRAME_STEP = int(sys.argv[3])
+    if len(sys.argv) >= 6:
+        TARGET_W = int(sys.argv[4])
+        TARGET_H = int(sys.argv[5])
     out_dir.mkdir(parents=True, exist_ok=True)
 
     with Image.open(src) as im:
@@ -83,8 +95,12 @@ def main():
 
         frame_count = 0
         prev_raw = None
-        for frame in ImageSequence.Iterator(im):
+        for index, frame in enumerate(ImageSequence.Iterator(im)):
+            if FRAME_STEP > 1 and (index % FRAME_STEP) != 0:
+                continue
             frame = frame.convert("RGB")
+            if TARGET_W != width or TARGET_H != height:
+                frame = frame.resize((TARGET_W, TARGET_H), Image.BILINEAR)
             pixels = list(frame.getdata())
             raw = rgb888_to_rgb565(pixels)
             if frame_count == 0:
