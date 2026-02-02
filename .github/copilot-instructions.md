@@ -1,0 +1,13 @@
+- [x] Verify that the copilot-instructions.md file in the .github directory is created.
+- [x] Clarify Project Requirements (MicroPython project requested).
+- [x] Scaffold the Project.
+- [x] Customize the Project (basic starter program).
+- [x] Install Required Extensions (none required).
+- [x] Compile the Project (not applicable for MicroPython scaffold).
+- [x] Create and Run Task (not needed).
+- [ ] Launch the Project (awaiting user confirmation).
+- [x] Ensure Documentation is Complete (README present; comments removed).
+
+- Work through each checklist item systematically.
+- Keep communication concise and focused.
+- Follow development best practices.
