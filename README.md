@@ -11,31 +11,36 @@ MicroPython project for Raspberry Pi Pico with a Pico LCD (1.14). It plays an an
 ## Project layout
 
 - boot.py: runs on boot
-- main.py: playback loop and timing
+- main.py: playback loop, button handling, and timing
 - src/pico_lcd_1_14.py: LCD driver (Waveshare 1.14)
 - tools/predecode_gif.py: PC-side delta-RLE encoder
-- frames_delta/: delta-RLE frames generated from the source GIF
+- frames_delta/: per-animation folders with delta-RLE frames and settings.txt
 
 ## Generate frames (PC)
 
 The Pico does not decode GIFs fast enough for smooth playback. Use the PC encoder to generate delta-RLE frames.
 
 1. Install Python 3 and Pillow.
-2. Place your source GIF at `gif/sega-small.gif` (240x135).
-3. Run the encoder:
+2. Place your source GIF under `gif/`.
+3. Run the encoder with input, output folder, optional frame step, and optional target size:
 
-	- `/home/will/tmp/sega-pico/.venv/bin/python tools/predecode_gif.py`
+	- `/home/will/tmp/sega-pico/.venv/bin/python tools/predecode_gif.py gif/sega-small.gif frames_delta/sega 1 120 67`
 
-This writes `frames_delta/frame_###.drle` files.
+This writes `frames_delta/<name>/frame_###.drle` files. For full resolution, use `240 135`.
 
 ## Configure playback
 
-Key settings in `main.py`:
+Each animation folder under `frames_delta/` must include a `settings.txt` file. Settings are loaded at startup and when switching animations.
 
-- `RAW_FRAMES_DIR`: folder for delta-RLE frames (default `frames_delta`).
-- `FRAME_SKIP`: render every Nth frame (default 4).
-- `TARGET_LOOP_MS`: target total loop duration in ms (default 1160).
-- `USE_TIMER_PACING`: hardware timer pacing (default true).
+Example settings:
+
+- `FRAME_SKIP = 4`
+- `PRINT_FRAMES = False`
+- `RAW_FRAMES_DIR = "frames_delta/sega"`
+- `FRAME_W = 120`
+- `FRAME_H = 67`
+- `TARGET_LOOP_MS = 1160`
+- `USE_TIMER_PACING = True`
 
 ## Flashing and upload
 
@@ -46,8 +51,35 @@ Use your preferred tool to copy files to the board. Common steps:
 3. Copy the `frames_delta/` folder to the device.
 4. Reset the board to run.
 
+## Controls
+
+- Button A (GP15, active-low): next animation folder
+- Button B (GP17, active-low): previous animation folder
+
 ## Troubleshooting
 
-- If you see noise, regenerate `frames_delta` and ensure the GIF is 240x135.
+- If you see noise, regenerate frames for that folder.
 - If playback is too slow, increase `FRAME_SKIP` or reduce the GIF size before encoding.
 - If timing drifts, adjust `TARGET_LOOP_MS`.
+
+## Project tree
+
+```
+.
+├── boot.py
+├── main.py
+├── README.md
+├── LICENSE
+├── CONTRIBUTING.md
+├── .gitignore
+├── .github/
+├── frames_delta/
+│   ├── sega/
+│   ├── sega-alternate/
+│   ├── sega-bouncing/
+│   └── sega-sonic/
+├── src/
+│   └── pico_lcd_1_14.py
+└── tools/
+	└── predecode_gif.py
+```
