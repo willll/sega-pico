@@ -14,9 +14,6 @@ if "src" not in sys.path:
 
 import pico_lcd_1_14 as lcd_mod
 
-from gif_decoder import GifDecoder
-
-GIF_PATH = "gif/sega-small.gif"
 FRAME_SKIP = 4
 PRINT_FRAMES = False
 RAW_FRAMES_DIR = "frames_delta"
@@ -153,63 +150,43 @@ def main() -> None:
     lcd = init_lcd()
     if not hasattr(lcd, "buffer"):
         raise RuntimeError("LCD driver missing framebuffer")
-    decoder = GifDecoder(GIF_PATH)
-
     while True:
-        if USE_RAW_FRAMES:
-            loop_start = time.ticks_ms()
-            frame_files = [name for name in os.listdir(RAW_FRAMES_DIR) if name.endswith(".drle")]
-            frame_files.sort()
-            frame_count = 0
-            offset_x = 0
-            offset_y = 0
-            if _frame_interval <= 0:
-                _frame_interval = max(1, TARGET_LOOP_MS // max(1, len(frame_files)))
-            timer = None
-            if USE_TIMER_PACING:
-                timer = Timer(-1)
-                timer.init(period=_frame_interval, mode=Timer.PERIODIC, callback=_timer_cb)
-            for name in frame_files:
-                if USE_TIMER_PACING:
-                    while not _frame_ready:
-                        time.sleep_ms(1)
-                    _frame_ready = False
-                delta_rle_decode_into(
-                    RAW_FRAMES_DIR + "/" + name,
-                    lcd.buffer,
-                    FRAME_W,
-                    FRAME_H,
-                    offset_x,
-                    offset_y,
-                    lcd.width,
-                )
-                if hasattr(lcd, "show") and (frame_count % FRAME_SKIP == 0):
-                    lcd.show()
-                frame_count += 1
-            if timer:
-                timer.deinit()
-            loop_elapsed = time.ticks_diff(time.ticks_ms(), loop_start)
-            print("frames:", frame_count, "total_ms:", loop_elapsed)
-            if USE_TIMER_PACING and frame_count:
-                error = TARGET_LOOP_MS - loop_elapsed
-                _frame_interval = max(1, _frame_interval + (error // frame_count))
-            continue
-
         loop_start = time.ticks_ms()
+        frame_files = [name for name in os.listdir(RAW_FRAMES_DIR) if name.endswith(".drle")]
+        frame_files.sort()
         frame_count = 0
-        for delay_ms in decoder.decode_into(lcd.buffer, lcd.width, lcd.height):
-            frame_start = time.ticks_ms()
+        offset_x = 0
+        offset_y = 0
+        if _frame_interval <= 0:
+            _frame_interval = max(1, TARGET_LOOP_MS // max(1, len(frame_files)))
+        timer = None
+        if USE_TIMER_PACING:
+            timer = Timer(-1)
+            timer.init(period=_frame_interval, mode=Timer.PERIODIC, callback=_timer_cb)
+        for name in frame_files:
+            if USE_TIMER_PACING:
+                while not _frame_ready:
+                    time.sleep_ms(1)
+                _frame_ready = False
+            delta_rle_decode_into(
+                RAW_FRAMES_DIR + "/" + name,
+                lcd.buffer,
+                FRAME_W,
+                FRAME_H,
+                offset_x,
+                offset_y,
+                lcd.width,
+            )
             if hasattr(lcd, "show") and (frame_count % FRAME_SKIP == 0):
                 lcd.show()
             frame_count += 1
-            if PRINT_FRAMES:
-                print("frame", frame_count)
-            elapsed = time.ticks_diff(time.ticks_ms(), frame_start)
-            remaining = delay_ms - elapsed
-            if remaining > 0:
-                time.sleep_ms(remaining)
+        if timer:
+            timer.deinit()
         loop_elapsed = time.ticks_diff(time.ticks_ms(), loop_start)
         print("frames:", frame_count, "total_ms:", loop_elapsed)
+        if USE_TIMER_PACING and frame_count:
+            error = TARGET_LOOP_MS - loop_elapsed
+            _frame_interval = max(1, _frame_interval + (error // frame_count))
 
 
 if __name__ == "__main__":
